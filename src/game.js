@@ -384,7 +384,7 @@ class Bottle {
   offset = null;
 
   mesh = new THREE.Group();
-  bottle = new THREE.ObjectLoader().parse(require('./models/bottle.json'));
+  bottle = new THREE.ObjectLoader().parse(require('./models/frog.json'));
 
   body = new CANNON.Body({
     mass: 0.1,
@@ -400,10 +400,10 @@ class Bottle {
 
     this.computeBoundingBox();
     const size = this.boundingBox.getSize();
-    this.bottle.position.set(0, 0, size.z / 2);
+    this.bottle.position.set(0, 0, - this.boundingBox.min.z);
     
 
-    this.offset = new THREE.Vector3(0, 0, size.z / 2);
+    this.offset = new THREE.Vector3(0, 0, - this.boundingBox.min.z);
     this.body.addShape(new CANNON.Cylinder(size.x / 2, size.x / 2, size.z, 20));
     this.body.sleep();
 
