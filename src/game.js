@@ -449,8 +449,8 @@ class Bottle {
     const {x, y} = this.mesh.position.clone().add(displacement),
     move = new TWEEN.Tween(this.mesh.position).to({x, y}, FLIP_DURATION);
 
-    const axis = displacement.clone().normalize().applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
-    
+    const axis = displacement.clone().normalize().applyAxisAngle(new THREE.Vector3(1, 1, 1), Math.PI/2).normalize();
+
     const rotate = new TWEEN.Tween({angle: 0}).to({angle: Math.PI * 2}, FLIP_DURATION).easing(TWEEN.Easing.Quadratic.Out).onUpdate(({angle}) => {
       this.bottle.quaternion.setFromAxisAngle(axis, angle);
     }),
