@@ -818,8 +818,8 @@ export default class Game extends THREE.EventDispatcher {
     this.createBlock().down();
     this.createBlock();
     this.bottle.mesh.position.set(0, 0, 1);
-    this.bottle.quaternion.set(0, 0, 0, 0);
-    this.bottle.bottle.mesh.quaternion.setFromAxisAngle(
+    this.bottle.mesh.quaternion.set(0, 0, 0, 0);
+    this.bottle.bottle.quaternion.setFromAxisAngle(
       new THREE.Vector3(0, 0, 1),
       new THREE.Vector3(1, 0, 0).angleTo( this.nextBlock.mesh.position.clone().sub(this.currentBlock.mesh.position).setZ(0).normalize() )
     );
