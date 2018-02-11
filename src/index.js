@@ -14,6 +14,7 @@ import { request } from './utils';
 import { Toast } from 'antd-mobile';
 
 import Share from './components/share/index';
+import Guide from './components/guide/index';
 
 const game = new BottleFlip();
 game.start();
@@ -171,20 +172,20 @@ class Rule extends React.Component {
           <Div maxHeight={rem(1000)} overflowY="auto">
           <Div fontSize={rem(32)} color="#aaa" padding={rem(30)}>
             <p>赛事奖励（最终排行榜）：</p>
-            <p>第一名: 奖励总价值750元优惠券</p>
-            <p>第二名到第十名: 每人奖励总价值370元优惠券</p>
-            <p>第十一名到第一百名: 每人奖励总价值170元优惠券</p>
+            <p>第一名: 奖励总价值400元优惠券</p>
+            <p>第二名到第十名: 每人奖励总价值200元优惠券</p>
+            <p>第十一名到第一百名: 每人奖励总价值50元优惠券</p>
             <p>第一百名到第三百名: 每人奖励总价值20元游戏优惠券</p>
             <p>第三百名到第五百名: 每人奖励总价值5元游戏优惠券</p>
             <p>按成绩排行，成绩相同的先提交成绩的排在前面</p>
             <p>-</p>
             <p>比赛时间：</p>
-            <p>2018年1月26日 - 2018年1月28日</p>
+            <p>2018年2月19日 - 2018年2月23日</p>
             <p>-</p>
             <p>比赛说明：</p>
-            <p>1、每天免费获取两次参赛机会；额外机会可通过20积分购买（每日限制购买10次）；</p>
+            <p>1、每天免费获取两次参赛机会；额外机会可通过10积分购买（每日限制购买10次）；</p>
             <p>2、如发现任何违规、套取奖励行为将视情节严重程度进行判罚：不予发放奖励、冻结通过推荐有奖所获得的奖励、依法追究其法律责任；</p>
-            <p>3、活动奖励将在1月29号统一进行发放；发放奖励以优惠券组合礼包发放到排行榜相应安锋账号中，可以在游戏充值进行使用；</p>
+            <p>3、活动奖励将在2月23日中午12点统一进行发放；发放奖励以优惠券组合礼包发放到排行榜相应安锋账号中，可以在游戏充值进行使用；</p>
           </Div>
           </Div>
         </Body>
@@ -236,6 +237,7 @@ class Landing extends React.Component {
       <Div fontSize={rem(36)} textAlign="center" position="absolute" width="100%" bottom={rem(70)} >剩余次数: {auth.remain}</Div>
       <Logout/>
       <RuleButton onClick={this.handleRuleClick}/>
+      <Guide/>
       </Wrapper>
   </div>;
   }
@@ -292,6 +294,7 @@ class Score extends React.Component {
         <Button onClick={handleRestartClick}>再玩一局</Button>
         <Div fontSize={rem(36)} textAlign="center" position="absolute" width="100%" bottom={rem(70)} >历史最高分: {ranking.highest.score}</Div>
       </Div>
+      <Guide/>
       </Wrapper>
     </div>
   }

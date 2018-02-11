@@ -1,7 +1,7 @@
 {
   "name": "game",
   "homepage": "https://wuzekang.github.io/bottle-flip/",
-  "proxy": "http://localhost",
+  "proxy": "http://passtest.qcwanwan.com",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

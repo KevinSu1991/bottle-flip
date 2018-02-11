@@ -170,7 +170,7 @@ const HOF = (name, _state) => {
   }
 }
 
-const round = (state = null, {type, payload}) => {
+const round = (state = {}, {type, payload}) => {
   switch (type) {
     case 'GAME_START_FULFILLED':
       return payload;
@@ -193,7 +193,7 @@ const reducers = combineReducers({
         return state;
     }
   },
-  ranking: (state = {}, {type, payload}) => {
+  ranking: (state = {relative: [], highest: {score: 0}}, {type, payload}) => {
     switch (type) {
       case 'SET_RANKING':
         return {...state, ...payload};

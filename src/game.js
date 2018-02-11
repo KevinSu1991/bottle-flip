@@ -363,6 +363,7 @@ class Block {
 
   down() {
     this.mesh.position.z = 3;
+    this.mesh.visible = true;
     return new TWEEN.Tween(this.mesh.position).to({z: 0}, 800).easing(TWEEN.Easing.Bounce.Out).start();
   }
 
@@ -404,7 +405,10 @@ class Bottle {
     
 
     this.offset = new THREE.Vector3(0, 0, - this.boundingBox.min.z);
-    this.body.addShape(new CANNON.Cylinder(size.x / 2, size.x / 2, size.z, 20));
+    
+    const _size = new CANNON.Vec3().copy(size.clone().multiplyScalar(0.5));
+
+    this.body.addShape(new CANNON.Box(_size));
     this.body.sleep();
 
     this.mesh.add(this.polymeric.particles);
@@ -444,15 +448,26 @@ class Bottle {
     return this.boundingBox;
   }
 
-  flip(displacement) {
-    
+  flip(distance, direction, lookAt, lookFrom) {
+    const displacement = direction.clone().multiplyScalar(distance);
+
+    // 转体
+    const swivelAngle = new THREE.Vector3(1, 0, 0).angleTo(lookAt);
+    const swivelAxis = new THREE.Vector3(0, 0, 1);
+
+    // 翻滚
+    const tumbleAxis = direction.clone().applyAxisAngle(new THREE.Vector3(1, 1, 1), Math.PI/2).normalize();
+
+
+    // 移动
     const {x, y} = this.mesh.position.clone().add(displacement),
     move = new TWEEN.Tween(this.mesh.position).to({x, y}, FLIP_DURATION);
 
-    const axis = displacement.clone().normalize().applyAxisAngle(new THREE.Vector3(1, 1, 1), Math.PI/2).normalize();
-
-    const rotate = new TWEEN.Tween({angle: 0}).to({angle: Math.PI * 2}, FLIP_DURATION).easing(TWEEN.Easing.Quadratic.Out).onUpdate(({angle}) => {
-      this.bottle.quaternion.setFromAxisAngle(axis, angle);
+    const rotate = new TWEEN.Tween({angle: 0, progress: 0}).to({angle: Math.PI * 2, progress: 1}, FLIP_DURATION).easing(TWEEN.Easing.Quadratic.Out).onUpdate(({angle, progress}) => {
+      const swivel = new THREE.Quaternion().setFromAxisAngle(swivelAxis, swivelAngle * progress);
+      const tumble = new THREE.Quaternion().setFromAxisAngle(tumbleAxis, angle);
+      // this.bottle.quaternion.copy(tumble);
+      this.bottle.quaternion.copy(swivel.multiply(tumble));
     }),
     up = new TWEEN.Tween(this.mesh.position).to({z: 1 + FLIP_HEIGHT}, FLIP_DURATION / 2).easing(TWEEN.Easing.Quadratic.Out),
     down = new TWEEN.Tween(this.mesh.position).to({z: 1}, FLIP_DURATION / 2).easing(TWEEN.Easing.Quadratic.In);
@@ -520,6 +535,8 @@ export default class Game extends THREE.EventDispatcher {
   blocks = [];
 
   steps = [];
+
+  step = 0;
 
   UI = new THREE.Group();
 
@@ -607,12 +624,11 @@ export default class Game extends THREE.EventDispatcher {
     _ground.addShape(new CANNON.Plane(), new CANNON.Vec3(0, 0, 0))
     this.world.addBody(_ground);
 
-    this.createBlock();
-    this.createBlock();
+
 
     this.add(this.bottle);
-    this.moveCamera();
 
+    this.restart();
     
     const _flipped$ = this.down$
       .filter(() => (!this.falling && !this.gameOver && !this.flipping))
@@ -643,9 +659,15 @@ export default class Game extends THREE.EventDispatcher {
           ...this.bottle.bounce(),
         ].map( tween => ( tween.start() ) );
 
-        const direction = this.nextBlock.mesh.position.clone().sub(this.bottle.mesh.position.clone().setZ(0)).normalize();
 
-        const completes = this.bottle.flip(direction.multiplyScalar(interval / 1000 * FLIP_DISTANCE_UNIT))
+        const direction = this.nextBlock.mesh.position.clone().sub(this.bottle.mesh.position.clone()).setZ(0).normalize();
+        const distance = interval / 1000 * FLIP_DISTANCE_UNIT;
+
+        const lookAt = !this.nextBlock.canHold(this.bottle.mesh.position.clone().add(direction.clone().multiplyScalar(distance)))
+                ? this.nextBlock.mesh.position.clone().sub(this.currentBlock.mesh.position.clone()).setZ(0).normalize()
+                : this.towardsBlock.mesh.position.clone().sub(this.nextBlock.mesh.position.clone()).setZ(0).normalize();
+        
+        const completes = this.bottle.flip(distance, direction, lookAt)
           .map( tween => ( tween.start() ) )
           .map(tween => {
             return Rx.Observable.bindCallback(tween.onComplete.bind(tween))()
@@ -689,6 +711,7 @@ export default class Game extends THREE.EventDispatcher {
 
             this.bottle.sputtering.emit();
             this.createBlock();
+            this.nextBlock.down();
             this.moveCamera();
 
             const len = this.steps.length;
@@ -719,14 +742,14 @@ export default class Game extends THREE.EventDispatcher {
     if (this.blocks.length) {
         const direction = this.random() > 0.5 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
         const last = this.blocks[this.blocks.length - 1];
-        const position = last.mesh.position.clone().add(direction.multiplyScalar(1.2 + this.random() * (1.2 + this.difficulty * 1.2)));
+        const position = last.mesh.position.clone().add(direction.multiplyScalar(1.2 + this.random() * (1.2 + this.difficulty * 1.2))).setZ(0);
         block.body.position.copy(position);
         block.mesh.position.copy(position);
-        block.down();
     } else {
         block.body.position.set(0, 0, 0);
         block.mesh.position.set(0, 0, 0);
     }
+    block.mesh.visible = false;
     this.blocks.push(block);
     this.add(block);
 
@@ -734,11 +757,15 @@ export default class Game extends THREE.EventDispatcher {
   }
 
   get currentBlock() {
-      return this.blocks[this.blocks.length - 2];
+      return this.blocks[this.blocks.length - 3];
   }
 
   get nextBlock() {
-      return this.blocks[this.blocks.length - 1];
+      return this.blocks[this.blocks.length - 2];
+  }
+
+  get towardsBlock() {
+    return this.blocks[this.blocks.length - 1];
   }
 
   moveCamera(animate = true) {
@@ -786,12 +813,14 @@ export default class Game extends THREE.EventDispatcher {
     })
     this.steps = [];
     this.blocks.length = 0;
-    this.createBlock();
+    this.createBlock().mesh.visible = true;
+    this.createBlock().down();
     this.createBlock();
     this.bottle.mesh.position.set(0, 0, 1);
     this.bottle.mesh.quaternion.set(0,0,0,0);
     this.bottle.connected = false;
     this.moveCamera(false);
+    
   }
 
   render() {
