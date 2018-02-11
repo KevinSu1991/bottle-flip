@@ -628,8 +628,9 @@ export default class Game extends THREE.EventDispatcher {
 
     this.add(this.bottle);
 
-    this.restart();
-    
+    this.restart(20);
+    this.scroreText.mesh.visible = false;
+
     const _flipped$ = this.down$
       .filter(() => (!this.falling && !this.gameOver && !this.flipping))
       .map(() => {
@@ -817,7 +818,10 @@ export default class Game extends THREE.EventDispatcher {
     this.createBlock().down();
     this.createBlock();
     this.bottle.mesh.position.set(0, 0, 1);
-    this.bottle.mesh.quaternion.set(0,0,0,0);
+    this.bottle.mesh.quaternion.setFromAxisAngle(
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(1, 0, 0).angleTo( this.nextBlock.mesh.position.clone().sub(this.currentBlock.mesh.position).setZ(0).normalize() )
+    );
     this.bottle.connected = false;
     this.moveCamera(false);
     
