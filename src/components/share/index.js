@@ -69,7 +69,7 @@ class ShareWeixin extends Component {
                 imgUrl: image, // 分享图标
                 success: onSuccess
             });
-        }).subscribe();
+        });
         document.body.appendChild(this.container);
     }
 
